@@ -1,0 +1,364 @@
+DECLARE
+    Cursor c_departamento is select id, nome from DEPARTAMENTO;
+    vNome DEPARTAMENTO.NOME%TYPE := 'Educa';
+	vId DEPARTAMENTO.ID%TYPE := 3;
+    opcao char(1) := 'V';
+BEGIN
+    IF opcao = 'I' then
+    	INSERT INTO DEPARTAMENTO VALUES (vID,vNome);
+		dbms_output.put_line('Departamento inserido!');
+	ELSIF opcao = 'A' then
+        UPDATE DEPARTAMENTO
+        SET NOME = vNome
+        where id = vId;
+		dbms_output.put_line('Departamento Alterado!');
+	ELSIF opcao = 'E' then
+        delete from DEPARTAMENTO where ID = vID;
+        dbms_output.put_line('Departamento excluído!');
+	ELSIF opcao = 'V' then
+		for teste IN c_departamento loop
+        dbms_output.put_line('ID: ' || teste.Id || '   ' || 'Nome: '|| teste.Nome);
+		end loop;
+	else
+        dbms_output.put_line('opcão não ecolhida, não existe!');
+	end if;
+END;
+
+
+-----------------------------------------------------------
+/*Escreva um cursor que retorne todos os registros de uma tabela chamada "clientes" e exiba na tela o nome e sobrenome de cada cliente.*/
+
+create table CLIENTES(
+    id int PRIMARY KEY,
+    nome varchar(20),
+    sobrenome varchar(80)
+);
+
+INSERT INTO CLIENTES VALUES(1,'GABRIEL','DE MELO GUERREIRO');
+INSERT INTO CLIENTES VALUES(2,'THAISE','GUERREIRO TURINI');
+INSERT INTO CLIENTES VALUES(3,'MARIA','GUERREIRO');
+INSERT INTO CLIENTES VALUES(4,'LUIS','GUERREIRO');
+INSERT INTO CLIENTES VALUES(5,'JORGE','TURINI');
+INSERT INTO CLIENTES VALUES(6,'THIAGO','GUERREIRO');
+
+DECLARE
+    CURSOR c_clientes is
+    			select nome, sobrenome
+    			from CLIENTES;
+	vNome CLIENTES.NOME%TYPE;
+	vSobrenome CLIENTES.SOBRENOME%TYPE;
+BEGIN
+ OPEN c_clientes;
+    LOOP
+		fetch c_clientes into vNome, vSobrenome;
+		   IF c_clientes%FOUND then
+			DBMS_OUTPUT.PUT_LINE('NOME: ' || vNome ||' - ' || 'SOBRENOME: ' || vSobrenome);
+		   else exit;
+		   end if;
+	end loop;
+  close c_clientes;
+END;
+---------------------------------------------------------------------------
+/*Escreva um cursor que percorra uma tabela chamada "pedidos" e calcule o valor total de todos os pedidos para um cliente específico. Exiba na tela o nome do cliente e o valor total de seus pedidos.*/
+
+create table CLIENTES(
+    codCliente int,
+    nome varchar(20),
+    constraint pk_codCliente PRIMARY KEY(codCliente)
+);
+
+create table PEDIDOS(
+    codPedido int,
+    codC int,
+    valorPedido decimal(10,2),
+    constraint pk_codPedido PRIMARY KEY(codPedido),
+    constraint pk_codClientes FOREIGN KEY(codC) references CLIENTES(codCliente)
+);
+
+
+
+INSERT INTO CLIENTES VALUES(1,'GABRIEL');
+INSERT INTO CLIENTES VALUES(2,'THAISE');
+INSERT INTO CLIENTES VALUES(3,'MARIA');
+INSERT INTO CLIENTES VALUES(4,'LUIS');
+INSERT INTO CLIENTES VALUES(5,'JORGE');
+INSERT INTO CLIENTES VALUES(6,'THIAGO');
+
+
+INSERT INTO PEDIDOS VALUES(1,1,400);
+INSERT INTO PEDIDOS VALUES(2,2,500);
+INSERT INTO PEDIDOS VALUES(3,5,800);
+INSERT INTO PEDIDOS VALUES(4,3,900);
+INSERT INTO PEDIDOS VALUES(5,1,900);
+INSERT INTO PEDIDOS VALUES(6,2,900);
+
+
+DECLARE
+    cursor c_pedido(Pcod NUMBER) is
+    	select c.nome, p.valorPedido
+    	from CLIENTES c join PEDIDOS p
+		on c.codCliente = p.codC
+    	WHERE codCliente = Pcod;
+	v_total_valorTot PEDIDOS.valorPedido%TYPE := 0;
+	v_nome CLIENTES.NOME%TYPE;
+BEGIN
+        for r_tot in c_pedido(1) loop
+        	v_total_valorTot := v_total_valorTot + r_tot.valorPedido;
+			v_nome := r_tot.nome;
+		end loop;
+		DBMS_OUTPUT.PUT_LINE('NOME: '||v_nome||'   '||'VALOR TOTAL DOS PEDIDOS: '||v_total_valorTot);
+END;
+
+----------------------------------------------------------------------------------------------------------
+/*Escreva um cursor que percorra uma tabela chamada "estoque" e verifique se há algum produto com quantidade em estoque abaixo de um determinado valor. 
+Se encontrar algum registro com quantidade abaixo do valor especificado, exiba na tela o nome do produto e a quantidade atual em estoque.*/
+
+CREATE TABLE estoque (
+    id_estoque NUMBER PRIMARY KEY,
+    nome_produto VARCHAR2(50),
+    quantidade NUMBER
+);
+
+INSERT INTO estoque VALUES (1, 'PS5', 100);
+INSERT INTO estoque VALUES (2, 'IPHONE 14', 50);
+INSERT INTO estoque VALUES (3, 'MAC', 200);
+
+DECLARE
+    CURSOR C_ESTOQUE (Pquantidade NUMBER) IS
+    			SELECT nome_produto, QUANTIDADE FROM ESTOQUE
+    			WHERE QUANTIDADE < Pquantidade;
+
+	v_nome ESTOQUE.NOME_PRODUTO%TYPE;
+	v_qtde ESTOQUE.QUANTIDADE%TYPE;
+BEGIN
+    open C_ESTOQUE(99);
+    loop
+        FETCH C_ESTOQUE INTO v_nome, v_qtde;
+			IF C_ESTOQUE%NOTFOUND THEN
+                EXIT;
+			END IF;
+		DBMS_OUTPUT.PUT_LINE('NOME DO PRODUTO: ' || v_nome || ' - '||'QUANTIDADE EM ESTOQUE: '||v_qtde);
+	end loop;
+	close C_ESTOQUE;
+END;
+
+-----------------------------------------------------------------------------------------------------------
+/*Crie um cursor para selecionar todos os registros de uma tabela de clientes e exibir na tela o nome e o telefone de cada cliente.*/
+CREATE TABLE CLIENTES (
+    NOME VARCHAR(50),
+    TELEFONE NUMBER
+);
+
+
+INSERT INTO CLIENTES VALUES ('João da Silva', 1234567890);
+INSERT INTO CLIENTES VALUES ('Maria Santos', 9876543210);
+INSERT INTO CLIENTES VALUES ('José Carlos', 5678901234);
+INSERT INTO CLIENTES VALUES ('Fernanda Oliveira', 4321098765);
+INSERT INTO CLIENTES VALUES ('Pedro Silva', 6789054321);
+INSERT INTO CLIENTES VALUES ('Ana Paula', 3456789012);
+INSERT INTO CLIENTES VALUES ('Lucas Ferreira', 8901234567);
+INSERT INTO CLIENTES VALUES ('Mariana Costa', 4567890123);
+INSERT INTO CLIENTES VALUES ('Gustavo Oliveira', 9012345678);
+INSERT INTO CLIENTES VALUES ('Carla Souza', 2345678901);
+
+DECLARE
+    CURSOR c_clientes is
+    	select nome, telefone from clientes;
+
+	v_nome	CLIENTES.NOME%TYPE;
+	v_telefone 	CLIENTES.TELEFONE%TYPE;
+BEGIN
+    open c_clientes;
+	fetch c_clientes into v_nome, v_telefone;
+    WHILE C_CLIENTES%FOUND LOOP
+    	DBMS_OUTPUT.PUT_LINE('NOME: '||v_nome||' - '||'TELEFONE: '||v_telefone);
+	fetch c_clientes into v_nome, v_telefone;
+	end loop;
+	close c_clientes;
+END;
+-----------------------------------------------------------------------------------------------------------
+/*Escreva um cursor que selecione o nome e o preço de todos os produtos em estoque cujo preço é maior que R$ 100,00.*/
+CREATE TABLE estoque (
+  id INTEGER PRIMARY KEY,
+  produto VARCHAR(50),
+  quantidade INTEGER,
+  valor DECIMAL(10,2)
+);
+
+INSERT INTO estoque VALUES (2, 'feijão', 30, 5.80);
+INSERT INTO estoque VALUES (3, 'macarrão', 20, 2.50);
+INSERT INTO estoque VALUES (4, 'leite', 40, 3.20);
+INSERT INTO estoque VALUES (5, 'PS5', 100, 4500);
+INSERT INTO estoque VALUES (6, 'IPHONE 14', 50, 8000);
+INSERT INTO estoque VALUES (1, 'MAC', 200, 1000);
+
+
+    DECLARE
+        CURSOR c_estoque(Pvalor DECIMAL) IS
+            SELECT PRODUTO, QUANTIDADE
+            FROM ESTOQUE
+            WHERE valor > Pvalor;
+        v_nome ESTOQUE.PRODUTO%TYPE;
+        v_quantidade ESTOQUE.QUANTIDADE%TYPE;
+    BEGIN
+        OPEN c_estoque(100);
+        LOOP
+            FETCH c_estoque INTO v_nome, v_quantidade;
+            if c_estoque%NOTFOUND then
+                exit;
+    		end if;
+            DBMS_OUTPUT.PUT_LINE('PRODUTO: '|| v_nome ||' - '||'Quantidade: '||v_quantidade);
+        END LOOP;
+        CLOSE c_estoque;
+    END;
+-----------------------------------------------------------------------------------------------------------
+/*Crie um cursor que selecione os nomes e salários dos funcionários de uma empresa e exiba na tela a média salarial.*/
+CREATE TABLE funcionarios (
+    id INTEGER PRIMARY KEY,
+    nome VARCHAR(50) NOT NULL,
+    salario DECIMAL(10, 2) NOT NULL,
+    id_departamento INTEGER NOT NULL,
+    FOREIGN KEY (id_departamento) REFERENCES departamentos(id)
+);
+
+CREATE TABLE departamentos (
+    id INTEGER PRIMARY KEY,
+    nome VARCHAR(50) NOT NULL
+);
+
+INSERT INTO departamentos VALUES (1, 'Financeiro');
+
+INSERT INTO departamentos VALUES (2, 'Marketing');
+
+INSERT INTO departamentos VALUES (3, 'Tecnologia');
+
+INSERT INTO departamentos VALUES (4, 'Recursos Humanos');
+
+INSERT INTO departamentos VALUES (5, 'Vendas');
+
+INSERT INTO funcionarios VALUES (1, 'João Silva', 4500.00, 3);
+
+INSERT INTO funcionarios VALUES (2, 'Maria Santos', 3500.00, 1);
+
+INSERT INTO funcionarios VALUES (3, 'Carlos Oliveira', 5000.00, 2);
+
+INSERT INTO funcionarios VALUES (4, 'Ana Costa', 4200.00, 4);
+
+INSERT INTO funcionarios VALUES (5, 'Pedro Sousa', 3800.00, 5);
+
+DECLARE
+    CURSOR c_funcionarios is
+    		select nome, salario from funcionarios;
+	v_mSal	decimal(10,2) := 0;
+	totSal	decimal(10,2) := 0;
+	totF	int := 0;
+BEGIN
+    for exibir in c_funcionarios loop
+		DBMS_OUTPUT.PUT_LINE('NOME: '|| exibir.nome||' '||'Salario: '|| exibir.salario);
+		totSal := totSal + exibir.salario;
+		totF  := totF + 1;
+	end loop;
+
+		v_mSal := totSal / totF;
+
+	if(totF > 0 ) then
+        DBMS_OUTPUT.PUT_LINE('   ');
+		DBMS_OUTPUT.PUT_LINE('   ');
+        DBMS_OUTPUT.PUT_LINE('A média salarial da empresa é: '||v_mSal);
+	else
+    	DBMS_OUTPUT.PUT_LINE('a empresa não possuí funcionários!');
+	end if;
+END;
+-----------------------------------------------------------------------------------------------------------
+/*Escreva um cursor que selecione o nome e a data de nascimento dos clientes que nasceram no mês atual.*/
+
+CREATE TABLE clientes (
+  id INT PRIMARY KEY,
+  nome VARCHAR(50),
+  data_nascimento DATE
+);
+
+
+INSERT INTO clientes VALUES (1, 'João Silva', TO_DATE('20-04-2023', 'DD-MM-YYYY'));
+INSERT INTO clientes VALUES (2, 'Maria Souza', TO_DATE('10-03-2023', 'DD-MM-YYYY')));
+INSERT INTO clientes VALUES (3, 'Pedro Santos', TO_DATE('10-04-2023', 'DD-MM-YYYY'));
+INSERT INTO clientes VALUES (4, 'Ana Costa', TO_DATE('23-04-2023', 'DD-MM-YYYY'));
+INSERT INTO clientes VALUES (5, 'Rafaela Lima', TO_DATE('10-05-2023', 'DD-MM-YYYY'));
+INSERT INTO clientes VALUES (6, 'Carlos Pereira', TO_DATE('16-3-2023', 'DD-MM-YYYY'));
+INSERT INTO clientes VALUES (7, 'Mariana Rocha', TO_DATE('10-03-2023', 'DD-MM-YYYY'));
+INSERT INTO clientes VALUES (8, 'Luiz Oliveira', TO_DATE('08-07-2023', 'DD-MM-YYYY'));
+
+DECLARE
+    CURSOR c_clientes is
+    	select nome, data_nascimento 
+    	from clientes
+    	where EXTRACT(MONTH FROM data_nascimento) = 4;
+
+	v_nome	CLIENTES.NOME%TYPE;
+	v_data	CLIENTES.DATA_NASCIMENTO%TYPE;
+BEGIN
+    OPEN C_CLIENTES;
+	LOOP
+        FETCH C_CLIENTES INTO v_nome, v_data;
+		IF C_CLIENTES%NOTFOUND THEN
+            EXIT;
+		END IF;
+		DBMS_OUTPUT.PUT_LINE('NOME: '||v_nome);
+		DBMS_OUTPUT.PUT_LINE('Nascimentos: '||v_data);
+		DBMS_OUTPUT.PUT_LINE('---------------------------');
+	end loop;
+	close c_clientes;
+END;
+-----------------------------------------------------------------------------------------------------------
+/*Crie um cursor que selecione todos os registros de uma tabela de vendas e exiba na tela o nome do cliente, a data da venda e o valor total da venda.*/
+
+CREATE TABLE clientes (
+  id INT PRIMARY KEY,
+  nome VARCHAR(50)
+);
+
+CREATE TABLE vendas (
+  id INT PRIMARY KEY,
+  cliente_id INT,
+  data_venda DATE,
+  valor_total DECIMAL(10,2),
+  FOREIGN KEY (cliente_id) REFERENCES clientes(id)
+);
+
+
+INSERT INTO clientes VALUES (1, 'João Silva');
+INSERT INTO clientes VALUES (2, 'Maria Santos');
+INSERT INTO clientes VALUES (3, 'Pedro Souza');
+INSERT INTO clientes VALUES (4, 'Ana Paula Pereira');
+INSERT INTO clientes VALUES (5, 'Lucas Ferreira');
+INSERT INTO clientes VALUES (6, 'Carla Santos');
+INSERT INTO clientes VALUES (7, 'Gustavo Silva');
+INSERT INTO clientes VALUES (8, 'Julia Oliveira');
+INSERT INTO clientes VALUES (9, 'Ricardo Souza');
+INSERT INTO clientes VALUES (10, 'Amanda Costa');
+
+INSERT INTO vendas VALUES (1, 1, to_date('2023-04-01', 'YYYY-MM-DD'), 100.00);
+INSERT INTO vendas VALUES (2, 2, to_date('2023-03-30', 'YYYY-MM-DD'), 200.00);
+INSERT INTO vendas VALUES (3, 3, to_date('2023-04-03', 'YYYY-MM-DD'), 50.00);
+INSERT INTO vendas VALUES (4, 4, to_date('2023-04-02', 'YYYY-MM-DD'), 300.00);
+INSERT INTO vendas VALUES (5, 5, to_date('2023-03-29', 'YYYY-MM-DD'), 150.00);
+INSERT INTO vendas VALUES (6, 6, to_date('2023-03-31', 'YYYY-MM-DD'), 80.00);
+INSERT INTO vendas VALUES (7, 7, to_date('2023-04-01', 'YYYY-MM-DD'), 120.00);
+INSERT INTO vendas VALUES (8, 8, to_date('2023-04-04', 'YYYY-MM-DD'), 250.00);
+INSERT INTO vendas VALUES (9, 9, to_date('2023-04-05', 'YYYY-MM-DD'), 400.00);
+INSERT INTO vendas VALUES (10, 10, to_date('2023-04-06', 'YYYY-MM-DD'), 80.00);
+
+DECLARE
+    CURSOR C_CLIENTE IS
+    SELECT C.NOME, V.DATA_VENDA, V.VALOR_TOTAL
+    FROM CLIENTES C JOIN VENDAS V
+    ON C.ID = V.CLIENTE_ID;
+BEGIN
+    FOR EXIBIR IN C_CLIENTE LOOP
+    	DBMS_OUTPUT.PUT_LINE('NOME: '||exibir.nome);
+		DBMS_OUTPUT.PUT_LINE('DATA DE VENDA: '||exibir.data_venda);
+		DBMS_OUTPUT.PUT_LINE('VALOR TOTAL: '||exibir.valor_total);
+		DBMS_OUTPUT.PUT_LINE('-------------------------------');
+	end loop;
+END;
+
